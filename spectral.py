@@ -18,7 +18,7 @@ eta = 40
 
 x0 = l / 2 # 20
 sigma = 1.2
-P0 = -10
+P0 = 10
 P = P0 * np.exp(-(x - x0)**2 / (2 * sigma**2))
 
 P, _ = np.meshgrid(P, P)
@@ -30,9 +30,9 @@ Kx, Ky = np.meshgrid(kx, ky)
 K_squared = Kx**2 + Ky**2
 
 
-vx_tilde = 1j * Kx * np.fft.fft2(P) / (epsilon + K_squared * eta)
+vx_tilde = - 1j * Kx * np.fft.fft2(P) / (epsilon + K_squared * eta)
 
-vy_tilde = 1j * Ky * np.fft.fft2(P) / (epsilon + K_squared * eta)
+vy_tilde = - 1j * Ky * np.fft.fft2(P) / (epsilon + K_squared * eta)
 
 vx = np.fft.ifft2(vx_tilde).real
 vy = np.fft.ifft2(vy_tilde).real
