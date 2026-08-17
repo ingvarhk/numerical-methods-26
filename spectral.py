@@ -19,9 +19,7 @@ eta = 40
 x0 = l / 2 # 20
 sigma = 1.2
 P0 = 10
-P = P0 * np.exp(-(x - x0)**2 / (2 * sigma**2))
-
-P, _ = np.meshgrid(P, P)
+P = P0 * np.exp(-(X - x0)**2 / (2 * sigma**2))
 
 kx = 2 * np.pi * np.fft.fftfreq(Nx, dx)
 ky = 2 * np.pi * np.fft.fftfreq(Ny, dy)
