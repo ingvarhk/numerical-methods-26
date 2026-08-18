@@ -41,8 +41,7 @@ def cahn_hilliard(phi0, dt, t_max, samples):
 
         if i % SAMPLE_INTERVAL == 0:
             k = i // SAMPLE_INTERVAL
-            # mean_values.append([t, np.mean(phi)])
-            # phi_over_t.append([t, phi.copy()])
+            
             T[k] = t
             PHI[k] = phi
             MEAN_PHI[k] = np.mean(phi)
