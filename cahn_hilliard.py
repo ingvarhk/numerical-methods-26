@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.animation as anim
 
+
 # Constants
 R0 = 7.2 # 1 mikrometer
 
@@ -13,60 +14,60 @@ b = 5 # Suspected chi
 # Simulation
 l = 40 # domain size
 dx = 0.5
+dy = 0.5
 dt = 10e-3 # < 0.16 = 4*(kappa)/(Lambda*b^2)
 
-t = 0
-t_max = 80
+def cahn_hilliard(phi0, dt, t_max, samples):
+    n_steps = int(round(t_max / dt))
+    sample_rate = max(1, n_steps // (samples - 1))
 
-def F(u):
-    return 
+    phi = phi0.copy()
+    phi_tilde = np.fft.fft2(phi)
 
-x = np.arange(0, l, dx); y = np.arange(0, l, dx)
-N = len(x)
+    kx = 2 * np.pi * np.fft.fftfreq(Nx, dx)
+    ky = 2 * np.pi * np.fft.fftfreq(Ny, dx)
+    kx, ky = np.meshgrid(kx, ky)
+    k_squared = kx**2 + ky**2
 
-def s(X, Y, r):
-    R = np.sqrt((X - np.mean(X))**2 + (Y - np.mean(Y))**2) # Distance from center
-    return np.array(R < r, dtype=np.float64) # Mask
+    # phi_over_t = []
+    # mean_values = []
 
-#phi = 2 * np.random.random((N, N)) - 1
+    T = np.zeros(samples)
+    PHI = np.zeros(samples)
+    MEAN_PHI = np.zeros(samples)
 
-X, Y = np.meshgrid(x, y)
-R = np.sqrt((X - l/2)**2 + (Y - l/2)**2)
+    t = 0
 
-# Calculate the equilibrium phase value
-#phi_eq = np.sqrt(b / a)
+    T[0] = t
+    PHI[0] = phi
+    MEAN_PHI[0] = np.mean(phi)
 
-# Scale the initial profile to match the stable minima
-#phi = 1 * np.tanh((R0 - R) / (np.sqrt(2 * kappa / b)))
+    i = 1
+    k = 1
+    t += dt
+    while t < t_max:
+        phi = np.fft.ifft2(phi_tilde).real
+        non_linear_term = np.fft.fft2(-a*phi**3 + b*phi)
 
-phi = np.random.random((N, N))*1.5-1
+        # Entire potential explicit
+        phi_tilde = (phi_tilde + Lambda*k_squared*dt * non_linear_term) / (1 + Lambda*dt*k_squared*(k_squared*kappa))
 
-phi_tilde = np.fft.fft2(phi)
+        # Original (only c^3 explicit)
+        #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
 
-k = 2*np.pi*np.fft.fftfreq(N, dx)
-kx, ky = np.meshgrid(k, k)
-k_squared = kx**2 + ky**2
+        if i % sample_rate == 0:
+            # mean_values.append([t, np.mean(phi)])
+            # phi_over_t.append([t, phi.copy()])
+            T[k] = t
+            PHI[k] = phi
+            MEAN_PHI[k] = np.mean(phi)
+            k += 1
+            
+        t += dt
+        i += 1
 
-phi_over_t = []
-mean_values = []
-
-i = 0
-while t < t_max:
-    phi = np.fft.ifft2(phi_tilde).real
-    non_linear_term = np.fft.fft2(-a*phi**3 + b*phi)
-
-    # Entire potential explicit
-    phi_tilde = (phi_tilde + Lambda*k_squared*dt * non_linear_term) / (1 + Lambda*dt*k_squared*(k_squared*kappa))
-
-    # Original (only c^3 explicit)
-    #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
-
-    if i % 100 == 0:
-        mean_values.append([t, np.mean(phi)])
-        phi_over_t.append([t, phi.copy()])
-        
-    t+=dt
-    i+=1
+    return T, PHI, MEAN_PHI
+    # return phi_over_t, mean_values
 
 
 
@@ -88,7 +89,28 @@ def get_animation(u_of_t):
 
     return anim.FuncAnimation(fig, update, frames=len(u_of_t), interval=20)
 
-ani = get_animation(phi_over_t)
+
+
+def central_drop(X, Y, r):
+    R = np.sqrt((X - np.mean(X))**2 + (Y - np.mean(Y))**2) # Distance from center
+    return np.array(R < r, dtype=np.float64) # Mask
+
+x = np.arange(0, l, dx)
+y = np.arange(0, l, dy)
+
+Nx = len(x)
+Ny = len(y)
+
+X, Y = np.meshgrid(x, y)
+R = np.sqrt((X - l / 2)**2 + (Y - l / 2)**2)
+
+# Equilibrium phase value
+#phi_eq = np.sqrt(b / a)
+
+phi = np.random.random((Ny, Nx))*1.5-1
+
+T, PHI, MEAN_PHI = cahn_hilliard(R < 0.5, dt, 80, 100)
+ani = get_animation(np.array(T, PHI))
 
 #plt.figure()
 #plt.plot(*zip(*mean_values), "o")
