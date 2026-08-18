@@ -1,22 +1,32 @@
-from cahn_hilliard import cahn_hilliard, get_animation
-from velocity_fields import stokes_flow, constant_velocity
 import matplotlib.pyplot as plt
 import numpy as np
+
+from cahn_hilliard import cahn_hilliard
+from velocity_fields import stokes_flow, constant_velocity, zero_velocity
+
+from ui import get_animation, add_secondary_axis
 import constants as c
 
 x = np.arange(0, c.lx, c.dx)
 y = np.arange(0, c.ly, c.dy)
-
-Nx = len(x)
-Ny = len(y)
-phi = np.random.random((Ny, Nx))*1.5-1
-
 X, Y = np.meshgrid(x, y)
+
+#phi = np.random.random((len(x), len(y)))*1.5-1
+
 R = np.sqrt((X - c.x0)**2 + (Y - c.y0)**2)
+phi = (R < c.R0)*1.5-1 
 
-phi = (R < c.R0)*1.5-1
+# Simulation
+T, PHI, MEAN_PHI = cahn_hilliard(phi, 200, 200, stokes_flow)
 
-T, PHI, MEAN_PHI = cahn_hilliard((R < c.R0)*1.5-1, 80, 100, stokes_flow)
+# Animation
+fig, ax = plt.subplots(figsize=(10, 7))
+anim = get_animation(T, PHI, fig, ax)
 
-ani = get_animation(T, PHI)
-plt.show()
+# Plot hastighed
+vx, _ = stokes_flow(phi)
+ax2 = add_secondary_axis(ax)
+ax2.plot(x, vx[0], "--", color="red", lw=2)
+
+#plt.show()
+anim.save("animation.gif", writer="pillow", fps=20)

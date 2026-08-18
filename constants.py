@@ -13,8 +13,7 @@ x0 = lx / 2
 y0 = ly / 2
 
 # TIME
-dt = 10e-3 # < 0.16 = 4*(kappa)/(lambda*b^2)
-
+dt = 5*10e-3 # < 0.16 = 4*(kappa)/(lambda*b^2)
 
 # NAVIER STOKES
 eta = 40 # Shear viscosity (0.0002 Pa*min)

@@ -1,13 +1,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import matplotlib.animation as anim
 
 import constants as c
 from velocity_fields import zero_velocity
 
 import time
 
-def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
+def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity, print_progress=True):
     iterations = int(t_max / c.dt)
     SAMPLE_INTERVAL = iterations // samples
 
@@ -49,36 +48,20 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
         #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
 
         if i % SAMPLE_INTERVAL == 0:
-            
             k = i // SAMPLE_INTERVAL
-
-            completion = i/iterations
-            print(f"Status: {100*completion:.1f}%        Remaining: ~{(time.time()-start_time)*(1/completion - 1):.0f}s")
+            if k >= samples: break
 
             T[k] = t
             PHI[k] = phi
             MEAN_PHI[k] = np.mean(phi)
 
+            # Printing how far we have come
+            if print_progress: print(f"\rStatus: {100*i/iterations:.1f}%		Remaining: ~{(time.time()-start_time)*(iterations/i - 1):.0f}s ", end="", flush=True)
+
+    print(f"\rStatus: 100.0%		Remaining: ~0s ", flush=True)
+    print(f"Done! Completed in {time.time()-start_time:.1f}s.")
+
     return T, PHI, MEAN_PHI
-
-
-# Function returning playable animation
-def get_animation(t, phi):
-    fig, ax = plt.subplots(figsize=(10, 8))
-
-    im = ax.imshow(phi[0], vmax=3, vmin=-3, origin="lower")
-    fig.colorbar(im, ax=ax)
-
-    ax.set(xlabel="x", ylabel="y")
-
-    def update(frame):
-        im.set_data(phi[frame])
-        #im.set_clim(vmax=np.max(u_of_t[frame][1]), vmin=np.min(u_of_t[frame][1]))
-        ax.set_title(f"t = {t[frame]:.2f}")
-
-        return im
-
-    return anim.FuncAnimation(fig, update, frames=len(phi), interval=20)
 
 
 def central_drop(X, Y, r):
@@ -86,6 +69,8 @@ def central_drop(X, Y, r):
     return np.array(R < r, dtype=np.float64) # Mask
 
 if __name__ == "__main__":
+    from ui import get_animation
+
     x = np.arange(0, c.l, c.dx)
     y = np.arange(0, c.l, c.dy)
 
@@ -101,7 +86,9 @@ if __name__ == "__main__":
     phi = np.random.random((Ny, Nx))*1.5-1
 
     T, PHI, MEAN_PHI = cahn_hilliard(phi, 80, 100)
-    ani = get_animation(T, PHI)
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ani = get_animation(T, PHI, fig, ax)
 
     #plt.figure()
     #plt.plot(*zip(*mean_values), "o")
