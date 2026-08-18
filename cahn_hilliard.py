@@ -60,7 +60,7 @@ while t < t_max:
 def get_animation(u_of_t):
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    im = ax.imshow(u_of_t[0][1], vmax=3, vmin=-3)
+    im = ax.imshow(u_of_t[0][1], vmax=3, vmin=-3,cmap="spring")
     fig.colorbar(im, ax=ax)
 
     ax.set(xlabel="x", ylabel="y")
