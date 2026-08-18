@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 from constants import *
 
-def spectral(dx, dy, l, x0, P0, sigma, epsilon, eta):
+def stokes_flow(dx, dy, l, x0, P0, sigma, epsilon, eta):
     x = np.arange(0, l, dx)
     y = np.arange(0, l, dy)
 
@@ -31,7 +31,7 @@ def spectral(dx, dy, l, x0, P0, sigma, epsilon, eta):
     return x, y, X, Y, P, vx, vy
 
 
-x, y, X, Y, P, vx, vy = spectral(dx, dy, l, x0, P0, sigma, epsilon, eta)
+x, y, X, Y, P, vx, vy = stokes_flow(dx, dy, l, x0, P0, sigma, epsilon, eta)
 
 fig, ax = plt.subplots(ncols=2)
 imx = ax[0].imshow(vx, origin="lower")
