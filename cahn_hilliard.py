@@ -21,7 +21,7 @@ def cahn_hilliard(phi0, dt, t_max, samples):
     # mean_values = []
 
     T = np.zeros(samples)
-    PHI = np.zeros(samples)
+    PHI = np.zeros((samples, Ny, Nx))
     MEAN_PHI = np.zeros(samples)
 
     t = 0
@@ -38,7 +38,7 @@ def cahn_hilliard(phi0, dt, t_max, samples):
         non_linear_term = np.fft.fft2(-a*phi**3 + b*phi)
 
         # Entire potential explicit
-        phi_tilde = (phi_tilde + Lambda*k_squared*dt * non_linear_term) / (1 + Lambda*dt*k_squared*(k_squared*kappa))
+        phi_tilde = (phi_tilde + lambd*k_squared*dt * non_linear_term) / (1 + lambd*dt*k_squared*(k_squared*kappa))
 
         # Original (only c^3 explicit)
         #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
@@ -97,8 +97,10 @@ R = np.sqrt((X - l / 2)**2 + (Y - l / 2)**2)
 
 phi = np.random.random((Ny, Nx))*1.5-1
 
-T, PHI, MEAN_PHI = cahn_hilliard(R < 0.5, dt, 80, 100)
-ani = get_animation(np.array(T, PHI))
+T, PHI, MEAN_PHI = cahn_hilliard(phi, dt, 80, 100)
+plt.imshow(PHI[-1])
+
+#ani = get_animation(np.array(T, PHI))
 
 #plt.figure()
 #plt.plot(*zip(*mean_values), "o")
