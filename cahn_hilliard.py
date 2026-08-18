@@ -5,6 +5,8 @@ import matplotlib.animation as anim
 import constants as c
 from velocity_fields import zero_velocity
 
+import time
+
 def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
     iterations = int(t_max / c.dt)
     SAMPLE_INTERVAL = iterations // samples
@@ -31,6 +33,8 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
     PHI[0] = phi
     MEAN_PHI[0] = np.mean(phi)
 
+    start_time = time.time()
+
     for i in range(1, iterations):
         t = i * c.dt
         velocity_term = np.fft.fft2(np.sum(velocity(phi) * np.fft.ifft2(1j * K_mega * phi_tilde), axis=0))
@@ -41,11 +45,15 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
 
         phi = np.fft.ifft2(phi_tilde).real
 
-        # Original (only c^3 explicit)
+        # Original (only c^3 explicit), becomes unstable
         #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
 
         if i % SAMPLE_INTERVAL == 0:
+            
             k = i // SAMPLE_INTERVAL
+
+            completion = i/iterations
+            print(f"Status: {100*completion:.1f}%        Remaining: ~{(time.time()-start_time)*(1/completion - 1):.0f}s")
 
             T[k] = t
             PHI[k] = phi
