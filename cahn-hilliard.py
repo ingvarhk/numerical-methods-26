@@ -16,10 +16,10 @@ dx = 0.5
 dt = 10e-3 # < 0.16 = 4*(kappa)/(Lambda*b^2)
 
 t = 0
-t_max = 20
+t_max = 80
 
 def F(u):
-    return u**3
+    return 
 
 x = np.arange(0, l, dx); y = np.arange(0, l, dx)
 N = len(x)
@@ -31,8 +31,15 @@ def s(X, Y, r):
 #phi = 2 * np.random.random((N, N)) - 1
 
 X, Y = np.meshgrid(x, y)
-phi = s(X, Y, R0)
-phi[phi < 0.9] = -1
+R = np.sqrt((X - l/2)**2 + (Y - l/2)**2)
+
+# Calculate the equilibrium phase value
+#phi_eq = np.sqrt(b / a)
+
+# Scale the initial profile to match the stable minima
+#phi = 1 * np.tanh((R0 - R) / (np.sqrt(2 * kappa / b)))
+
+phi = np.random.random((N, N))*1.5-1
 
 phi_tilde = np.fft.fft2(phi)
 
@@ -46,15 +53,15 @@ mean_values = []
 i = 0
 while t < t_max:
     phi = np.fft.ifft2(phi_tilde).real
-    non_linear_term = np.fft.fft2(F(phi))
+    non_linear_term = np.fft.fft2(-a*phi**3 + b*phi)
 
     # Entire potential explicit
-    #phi_tilde = (phi_tilde + Lambda*k_squared*dt * (-a*non_linear_term + b*phi_tilde)) / (1 + Lambda*dt*k_squared*(k_squared*kappa))
+    phi_tilde = (phi_tilde + Lambda*k_squared*dt * non_linear_term) / (1 + Lambda*dt*k_squared*(k_squared*kappa))
 
     # Original (only c^3 explicit)
-    phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
+    #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
 
-    if i%25 == 0:
+    if i % 100 == 0:
         mean_values.append([t, np.mean(phi)])
         phi_over_t.append([t, phi.copy()])
         
@@ -67,7 +74,7 @@ while t < t_max:
 def get_animation(u_of_t):
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    im = ax.imshow(u_of_t[0][1], vmax=1, vmin=-1)
+    im = ax.imshow(u_of_t[0][1], vmax=3, vmin=-3)
     fig.colorbar(im, ax=ax)
 
     ax.set(xlabel="x", ylabel="y")
