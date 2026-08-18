@@ -2,7 +2,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.animation as anim
 
-
 from constants import *
 
 def cahn_hilliard(phi0, dt, t_max, samples):
@@ -60,22 +59,22 @@ def cahn_hilliard(phi0, dt, t_max, samples):
 
 
 # Function returning playable animation
-def get_animation(u_of_t):
+def get_animation(t, phi):
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    im = ax.imshow(u_of_t[0][1], vmax=3, vmin=-3)
+    im = ax.imshow(phi[0], vmax=3, vmin=-3)
     fig.colorbar(im, ax=ax)
 
     ax.set(xlabel="x", ylabel="y")
 
     def update(frame):
-        im.set_data(u_of_t[frame][1])
+        im.set_data(phi[frame])
         #im.set_clim(vmax=np.max(u_of_t[frame][1]), vmin=np.min(u_of_t[frame][1]))
-        ax.set_title(f"t = {u_of_t[frame][0]:.2f}")
+        ax.set_title(f"t = {t[frame]:.2f}")
 
         return im
 
-    return anim.FuncAnimation(fig, update, frames=len(u_of_t), interval=20)
+    return anim.FuncAnimation(fig, update, frames=len(phi), interval=20)
 
 
 
@@ -100,7 +99,7 @@ phi = np.random.random((Ny, Nx))*1.5-1
 T, PHI, MEAN_PHI = cahn_hilliard(phi, dt, 80, 100)
 plt.imshow(PHI[-1])
 
-#ani = get_animation(np.array(T, PHI))
+ani = get_animation(T, PHI)
 
 #plt.figure()
 #plt.plot(*zip(*mean_values), "o")
