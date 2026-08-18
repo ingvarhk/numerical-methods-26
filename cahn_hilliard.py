@@ -2,24 +2,10 @@ import numpy as np
 from matplotlib import pyplot as plt
 import matplotlib.animation as anim
 
-# Constants
-R0 = 7.2 # 1 mikrometer
-
-Lambda = 1
-kappa = 1 
-a = 1 # Log difference ~ c^3
-b = 5 # Suspected chi
-
-# Simulation
-l = 40 # domain size
-dx = 0.5
-dt = 10e-3 # < 0.16 = 4*(kappa)/(Lambda*b^2)
+from constants import *
 
 t = 0
 t_max = 80
-
-def F(u):
-    return 
 
 x = np.arange(0, l, dx); y = np.arange(0, l, dx)
 N = len(x)

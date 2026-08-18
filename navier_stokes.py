@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+from constants import *
 
 def spectral(dx, dy, l, x0, P0, sigma, epsilon, eta):
     x = np.arange(0, l, dx)
@@ -30,18 +30,6 @@ def spectral(dx, dy, l, x0, P0, sigma, epsilon, eta):
 
     return x, y, X, Y, P, vx, vy
 
-
-dx = 0.5
-dy = 0.5
-l = 40
-
-epsilon = 12.5
-eta = 40
-
-x0 = l / 2 # 20
-
-sigma = 1.2
-P0 = 10
 
 x, y, X, Y, P, vx, vy = spectral(dx, dy, l, x0, P0, sigma, epsilon, eta)
 
