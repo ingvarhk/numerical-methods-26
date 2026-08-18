@@ -2,8 +2,15 @@
 dy = dx = 0.5 # Spatial discretization step (0.07μm)
 l = 40 # Domain size (5.7μm)
 
+lx = l
+ly = l
+
 R0 = 7.2 # Initial pyrenoid radius (1.0μm)
-x0 = l / 2 # Pyrenoid center (2.9μm)
+
+# Pyrenoid center
+# l / 2 (2.9μm)
+x0 = lx / 2
+y0 = ly / 2
 
 # TIME
 dt = 10e-3 # < 0.16 = 4*(kappa)/(lambda*b^2)

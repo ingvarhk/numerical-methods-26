@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import constants as c
 
 def stokes_flow(phi):
-    x = np.arange(0, c.l, c.dx)
-    y = np.arange(0, c.l, c.dy)
+    x = np.arange(0, c.lx, c.dx)
+    y = np.arange(0, c.ly, c.dy)
 
     Nx = len(x)
     Ny = len(y)
@@ -39,7 +39,7 @@ def constant_velocity(phi):
 
 def zero_velocity(phi):
     return np.array([
-        np.zero_like(phi),      # u = 1
+        np.zeros_like(phi),      # u = 1
         np.zeros_like(phi)      # v = 0
     ])
 

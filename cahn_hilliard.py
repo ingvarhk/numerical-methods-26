@@ -6,8 +6,8 @@ import constants as c
 from velocity_fields import zero_velocity
 
 def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
-    
-    SAMPLE_INTERVAL = int(t_max // (samples * c.dt))
+    iterations = int(t_max / c.dt)
+    SAMPLE_INTERVAL = iterations // samples
 
     phi = phi0.copy()
     phi_tilde = np.fft.fft2(phi)
@@ -31,9 +31,8 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
     PHI[0] = phi
     MEAN_PHI[0] = np.mean(phi)
 
-    i = 1
-    t += c.dt
-    while t < t_max:
+    for i in range(1, iterations):
+        t = i * c.dt
         velocity_term = np.fft.fft2(np.sum(velocity(phi) * np.fft.ifft2(1j * K_mega * phi_tilde), axis=0))
 
         # Entire potential explicit
@@ -51,9 +50,6 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
             T[k] = t
             PHI[k] = phi
             MEAN_PHI[k] = np.mean(phi)
-            
-        t += c.dt
-        i += 1
 
     return T, PHI, MEAN_PHI
 
@@ -62,7 +58,7 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity):
 def get_animation(t, phi):
     fig, ax = plt.subplots(figsize=(10, 8))
 
-    im = ax.imshow(phi[0], vmax=3, vmin=-3)
+    im = ax.imshow(phi[0], vmax=3, vmin=-3, origin="lower")
     fig.colorbar(im, ax=ax)
 
     ax.set(xlabel="x", ylabel="y")
