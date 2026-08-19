@@ -2,24 +2,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cahn_hilliard import cahn_hilliard
-from velocity_fields import stokes_flow, constant_velocity, zero_velocity
+from velocity_fields import stokes_flow, constant_velocity, zero_velocity, divergence
 
 from ui import get_animation, add_secondary_axis, rebin_velocity_field
 from initial_conditions import InitialConditions
 
 import constants as c
 
-# Vælge startbetingelser
+# Vælg startbetingelser
 IC = InitialConditions()
 IC.add_pyrenoid()
 
-# Vælg velocity-funktion
-velocity_function = constant_velocity
+# Definer velocity function
+velocity_function = stokes_flow
+vel = velocity_function(IC.phi)
+
+# Divergens-test
+plt.imshow(divergence(vel), origin="lower")
+plt.colorbar()
+plt.show()
 
 # Kør simulation
-vel = velocity_function(IC.phi)
 T, PHI, MEAN_PHI = cahn_hilliard(IC.phi, 200, 200, lambda _: vel)
-
 
 # Lav animation
 fig, ax = plt.subplots(figsize=(10, 7))
