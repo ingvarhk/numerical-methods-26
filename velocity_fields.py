@@ -2,17 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import constants as c
+from initial_conditions import InitialConditions
 
+IC = InitialConditions()
+
+# Ligning: eta*laplace(v) - gradient(P) + epsilon*v = 0
 def stokes_flow(phi):
-    x = np.arange(0, c.lx, c.dx)
-    y = np.arange(0, c.ly, c.dy)
 
-    Nx = len(x)
-    Ny = len(y)
+    Nx = len(IC.x)
+    Ny = len(IC.y)
 
-    X, Y = np.meshgrid(x, y)
-
-    P = c.P0 * np.exp(-(X - c.x0)**2 / (2 * c.sigma**2))
+    P = c.P0 * np.exp(-(IC.X - c.x0)**2 / (2 * c.sigma**2))
 
     kx = 2 * np.pi * np.fft.fftfreq(Nx, c.dx)
     ky = 2 * np.pi * np.fft.fftfreq(Ny, c.dy)
@@ -20,29 +20,27 @@ def stokes_flow(phi):
     Kx, Ky = np.meshgrid(kx, ky)
     K_squared = Kx**2 + Ky**2
 
-
     vx_tilde = - 1j * Kx * np.fft.fft2(P) / (c.epsilon + K_squared * c.eta)
-
     vy_tilde = - 1j * Ky * np.fft.fft2(P) / (c.epsilon + K_squared * c.eta)
 
     vx = np.fft.ifft2(vx_tilde).real
     vy = np.fft.ifft2(vy_tilde).real
 
-    # x, y, X, Y, P
     return np.array([vx, vy])
 
 def constant_velocity(phi):
     return np.array([
-        np.ones_like(phi),      # u = 1
-        np.zeros_like(phi)      # v = 0
+        np.ones_like(phi),      # vx = 1
+        np.zeros_like(phi)      # vy = 0
     ])
 
 def zero_velocity(phi):
     return np.array([
-        np.zeros_like(phi),      # u = 1
-        np.zeros_like(phi)      # v = 0
+        np.zeros_like(phi),
+        np.zeros_like(phi)
     ])
 
+# Udregn divergens af hastighedsfelt
 def divergence(v):
     _, Ny, Nx = v.shape
     kx = 2 * np.pi * np.fft.fftfreq(Nx, c.dx)
@@ -53,21 +51,16 @@ def divergence(v):
 
     return np.fft.ifft2(np.sum(1j * K_mega * np.fft.fft2(v), axis=0)).real
 
-# x, y, X, Y, P, vx, vy = stokes_flow()
+# Plot
+if __name__ == "__main__":
+    v = stokes_flow(IC.phi)
 
-# fig, ax = plt.subplots(ncols=2)
-# imx = ax[0].imshow(vx, origin="lower")
-# imy = ax[1].imshow(vy, origin="lower")
-# fig.colorbar(imx)
-# fig.colorbar(imy)
+    plt.title(r"Divergens af hastighedsfeltet, altså $\nabla\cdot v$")
+    plt.imshow(divergence(v), extent=[0, c.lx, 0, c.ly])
+    plt.colorbar()
 
-# plt.figure()
-# plt.quiver(X, Y, vx, vy)
+    plt.figure()
+    plt.title("Hastighedsfelt med gaussisk tryk")
+    plt.quiver(IC.X, IC.Y, *v, scale=1.5*np.max(v), scale_units="xy")
 
-# plt.figure()
-# plt.plot(x, P[0])
-
-# plt.figure()
-# plt.plot(x, vx[0])
-
-# plt.show()
+    plt.show()
