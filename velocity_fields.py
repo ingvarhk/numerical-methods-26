@@ -26,7 +26,7 @@ def stokes_flow(phi):
     vx = np.fft.ifft2(vx_tilde).real
     vy = np.fft.ifft2(vy_tilde).real
 
-    return np.array([vx, vy])
+    return np.array([vx, vy]) # * (1 / np.sqrt(2 * np.pi * 6**2)) * np.exp(-(IC.Y - c.y0)**2 / (2 * 7**2))
 
 def constant_velocity(phi):
     return np.array([

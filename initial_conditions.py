@@ -18,6 +18,10 @@ class InitialConditions:
         R = np.sqrt((self.X - c.x0)**2 + (self.Y - c.y0)**2)
         self.phi[R < c.R0] = value
 
+    def add_smooth_pyrenoid(self):
+        R = np.sqrt((self.X - c.x0)**2 + (self.Y - c.y0)**2)
+        self.phi += np.maximum(0, np.tanh((2 * c.R0 - R) / c.R0) * 2 * self.phi_equilibrium)
+
     def add_stardust(self, scale: float = 0.1):
         self.phi += (np.random.random(self.shape)-0.5)*scale # Star dust
 
