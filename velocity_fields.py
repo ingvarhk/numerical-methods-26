@@ -13,6 +13,7 @@ def stokes_flow(phi):
     Ny = len(IC.y)
 
     P = c.P0 * np.exp(-(IC.X - c.x0)**2 / (2 * c.sigma**2))
+    #P[np.abs(IC.Y-c.x0) > 10] = 0
 
     kx = 2 * np.pi * np.fft.fftfreq(Nx, c.dx)
     ky = 2 * np.pi * np.fft.fftfreq(Ny, c.dy)
