@@ -14,7 +14,9 @@ class InitialConditions:
     def add_random_bubbles(self):
         self.phi += np.random.random(self.shape)*1.5-1
 
-    def add_pyrenoid(self, value: float = 1.0):
+    def add_pyrenoid(self, value: float = None):
+        if not value: value = self.phi_equilibrium
+
         R = np.sqrt((self.X - c.x0)**2 + (self.Y - c.y0)**2)
         self.phi[R < c.R0] = value
 

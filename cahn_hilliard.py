@@ -6,69 +6,99 @@ from velocity_fields import zero_velocity
 
 import time
 
-def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity, print_progress=True):
-    iterations = int(t_max / c.dt)
-    SAMPLE_INTERVAL = iterations // samples
+class CahnHilliardSolver:
+    def __init__(self, phi0_u, phi0_p, t_max, samples, velocity=zero_velocity, print_progress=True):
+        self.velocity = velocity
+        self.print_progress = print_progress
+        self.samples = samples
 
-    phi = phi0.copy()
-    phi_tilde = np.fft.fft2(phi)
+        self.iterations = int(t_max / c.dt)
+        self.SAMPLE_INTERVAL = self.iterations // samples
 
-    Ny, Nx = phi.shape
+        self.phi_u = phi0_u.copy()
+        self.phi_p = phi0_p.copy()
 
-    kx = 2 * np.pi * np.fft.fftfreq(Nx, c.dx)
-    ky = 2 * np.pi * np.fft.fftfreq(Ny, c.dy)
+        self.phi_u_tilde = np.fft.fft2(self.phi_u)
+        self.phi_p_tilde = np.fft.fft2(self.phi_p)
 
-    Kx, Ky = np.meshgrid(kx, ky)
-    k_squared = Kx**2 + Ky**2
-    K_mega = np.array([Kx, Ky])
+        self.Ny, self.Nx = self.phi_u.shape
 
-    T = np.zeros(samples)
-    PHI = np.zeros((samples, Ny, Nx))
-    MEAN_PHI = np.zeros(samples)
+        kx = 2 * np.pi * np.fft.fftfreq(self.Nx, c.dx)
+        ky = 2 * np.pi * np.fft.fftfreq(self.Ny, c.dy)
 
-    t = 0
+        self.Kx, self.Ky = np.meshgrid(kx, ky)
+        self.k_squared = self.Kx**2 + self.Ky**2
+        self.K_mega = np.array([self.Kx, self.Ky])
 
-    T[0] = t
-    PHI[0] = phi
-    MEAN_PHI[0] = np.mean(phi)
+        self.T = np.zeros(samples)
+        self.PHI_U = np.zeros((samples, self.Ny, self.Nx))
+        self.PHI_P = np.zeros((samples, self.Ny, self.Nx))
+        self.MEAN_PHI_U = np.zeros(samples)
+        self.MEAN_PHI_P = np.zeros(samples)
 
-    start_time = time.time()
+        self.t = 0
 
-    for i in range(1, iterations):
-        t = i * c.dt
-        # first_velocity_term = np.fft.fft2(np.sum(velocity(phi) * np.fft.ifft2(1j * K_mega * phi_tilde), axis=0))
-        # second_velocity_term = np.fft.fft2(phi*np.fft.ifft2(np.sum(1j*K_mega*np.fft.fft2(velocity(phi)), axis=0)))
-        velocity_term = np.sum(1j * K_mega*np.fft.fft2(velocity(t, phi) * phi), axis=0)
+        self.T[0] = self.t
+        self.PHI_U[0] = self.phi_u
+        self.PHI_P[0] = self.phi_p
+        self.MEAN_PHI_U[0] = np.mean(self.phi_u)
+        self.MEAN_PHI_P[0] = np.mean(self.phi_p)
 
+        self.start_time = time.time()
+
+    # Reaction
+    def reaction_flux(self):
+        sigma = 1 - 1/(1+np.exp(-c.sharpness_b*(self.phi_u-c.phi_c)))
+        return -sigma*c.k_p*self.phi_u + (1-sigma)*c.k_u*self.phi_p
+
+    # Update function
+    def spectral_ch_step(self, phi, phi_tilde, reaction_direction):
+        velocity_term = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, phi) * phi), axis=0)
+        
         # Entire potential explicit
-        non_linear_term = np.fft.fft2(-c.a*phi**3 + c.b*phi)
-        phi_tilde = (phi_tilde + c.lambd*k_squared*c.dt * non_linear_term - velocity_term* c.dt) / (1 + c.lambd*c.dt*k_squared*(k_squared*c.kappa))
+        if reaction_direction == 1: non_linear_term = np.fft.fft2(c.a*phi**3 - c.b*phi)
+        else: non_linear_term = np.fft.fft2(8.3*phi) # Define this later...
+
+        reaction_flux = np.fft.fft2(reaction_direction*self.reaction_flux())
+        phi_tilde = (phi_tilde - c.lambd*self.k_squared*c.dt * non_linear_term - velocity_term*c.dt + reaction_flux*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
 
         phi = np.fft.ifft2(phi_tilde).real
 
-        # Original (only c^3 explicit), becomes unstable
-        #phi_tilde = (phi_tilde - Lambda*a*k_squared*non_linear_term*dt)/(1 + Lambda*dt*k_squared*(kappa*k_squared - b))
+        return phi, phi_tilde
 
-        if i % SAMPLE_INTERVAL == 0:
-            k = i // SAMPLE_INTERVAL
-            if k >= samples: break
+    # Cahn-Hilliard
+    def run_simulation(self):
+        for i in range(1, self.iterations):
+            self.t = i * c.dt
 
-            T[k] = t
-            PHI[k] = phi
-            MEAN_PHI[k] = np.mean(phi)
+            temp_phi_u, temp_phi_u_tilde = self.spectral_ch_step(self.phi_u, self.phi_u_tilde, 1)
+            self.phi_p, self.phi_p_tilde = self.spectral_ch_step(self.phi_p, self.phi_p_tilde, -1)
 
-            # Printing how far we have come
-            if print_progress: print(f"\rStatus: {100*i/iterations:.1f}%		Remaining: ~{(time.time()-start_time)*(iterations/i - 1):.0f}s ", end="", flush=True)
+            self.phi_u, self.phi_u_tilde = temp_phi_u, temp_phi_u_tilde
+            
+            if i % self.SAMPLE_INTERVAL == 0:
+                k = i // self.SAMPLE_INTERVAL
+                if k >= self.samples: break
 
-    print(f"\rStatus: 100.0%		Remaining: ~0s ", flush=True)
-    print(f"Done! Completed in {time.time()-start_time:.1f}s.")
+                self.T[k] = self.t
+                self.PHI_U[k] = self.phi_u
+                self.PHI_P[k] = self.phi_p
 
-    return T, PHI, MEAN_PHI
+                self.MEAN_PHI_U[k] = np.mean(self.phi_u)
+                self.MEAN_PHI_P[k] = np.mean(self.phi_p)
+
+                # Printing how far we have come
+                if self.print_progress: print(f"\rStatus: {100*i/self.iterations:.1f}%		Remaining: ~{(time.time()-self.start_time)*(self.iterations/i - 1):.0f}s ", end="", flush=True)
+
+        print(f"\rStatus: 100.0%		Remaining: ~0s ", flush=True)
+        print(f"Done! Completed in {time.time()-self.start_time:.1f}s.")
+
+        return self.T, self.PHI_U, self.PHI_P, self.MEAN_PHI_U, self.MEAN_PHI_P
 
 
-def central_drop(X, Y, r):
-    R = np.sqrt((X - np.mean(X))**2 + (Y - np.mean(Y))**2) # Distance from center
-    return np.array(R < r, dtype=np.float64) # Mask
+    def central_drop(X, Y, r):
+        R = np.sqrt((X - np.mean(X))**2 + (Y - np.mean(Y))**2) # Distance from center
+        return np.array(R < r, dtype=np.float64) # Mask
 
 if __name__ == "__main__":
     from ui import get_animation

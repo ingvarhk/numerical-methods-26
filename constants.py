@@ -28,9 +28,14 @@ lambd = 1 # Mobility coefficient (0.2 μm^2 min−1)
 chi = 5 # Flory-Huggins interaction parameter (5)
 kappa = 1 # Interfacial width coefficient (0.02 μm^2)
 
-a = 1 # No equivalent in paper
-b = chi # Suspected chi
+a = 60.0 # No equivalent in paper
+b = 2.1 # Suspected chi
 
+# REACTIONS
+sharpness_b = 200
+phi_c = 0.5
+k_p = 0.03
+k_u = 0.03
 
 # CONVERTING TO CHARACTERISTIC VALUES
 def conversion(input: float, quantity: str) -> float:

@@ -6,7 +6,7 @@ import constants as c
 # Function returning playable animation
 def get_animation(t, phi, fig, ax):
 
-    im = ax.imshow(phi[0], vmax=3, vmin=-3, extent=[0, c.lx, 0, c.ly], origin="lower")
+    im = ax.imshow(phi[0], extent=[0, c.lx, 0, c.ly], origin="lower")
     fig.colorbar(im, ax=ax)
 
     ax.set(xlabel="x", ylabel="y")
