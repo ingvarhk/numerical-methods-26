@@ -32,3 +32,16 @@ def add_secondary_axis(ax):
     ax2.spines["left"].set(position=("outward", 45), color="red")
 
     return ax2
+
+def rebin_velocity_field(X, Y, vx, vy):
+    n = 2
+    ny, nx = vx.shape
+    ny2, nx2 = ny // n * n, nx // n * n
+
+    vx = vx[:ny2, :nx2].reshape(ny2//n, n, nx2//n, n).mean((1, 3))
+    vy = vy[:ny2, :nx2].reshape(ny2//n, n, nx2//n, n).mean((1, 3))
+
+    Xq = X[n//2:ny2:n, n//2:nx2:n]
+    Yq = Y[n//2:ny2:n, n//2:nx2:n]
+
+    return Xq, Yq, vx, vy
