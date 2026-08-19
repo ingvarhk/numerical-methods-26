@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cahn_hilliard import cahn_hilliard
-from velocity_fields import stokes_flow, constant_velocity, zero_velocity
+from velocity_fields import stokes_flow, constant_velocity, zero_velocity, divergence
 
 from ui import get_animation, add_secondary_axis, rebin_velocity_field
 import constants as c
@@ -19,10 +19,13 @@ phi = (R < c.R0)*1.0
 phi[phi > 0.5] = 1
 phi[phi < 0.5] = -np.sqrt(c.b/c.a)
 
-velocity_function = constant_velocity
-
+velocity_function = stokes_flow
 # Simulation
 vel = velocity_function(phi)
+plt.imshow(divergence(vel), origin="lower")
+plt.colorbar()
+plt.show()
+
 T, PHI, MEAN_PHI = cahn_hilliard(phi, 200, 200, lambda _: vel)
 
 print(PHI.shape)
@@ -40,4 +43,4 @@ ax.quiver(*rebin_velocity_field(X, Y, vx, vy), scale=np.max(vx), scale_units="xy
 #ax2.plot(x, vx[0], "--", color="red", lw=2)
 
 plt.show()
-anim.save("animation.gif", writer="pillow", fps=20)
+#anim.save("animation.gif", writer="pillow", fps=20)

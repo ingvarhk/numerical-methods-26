@@ -43,6 +43,16 @@ def zero_velocity(phi):
         np.zeros_like(phi)      # v = 0
     ])
 
+def divergence(v):
+    _, Ny, Nx = v.shape
+    kx = 2 * np.pi * np.fft.fftfreq(Nx, c.dx)
+    ky = 2 * np.pi * np.fft.fftfreq(Ny, c.dy)
+
+    Kx, Ky = np.meshgrid(kx, ky)
+    K_mega = np.array([Kx, Ky])
+    print(np.fft.fft2(v).shape)
+    return np.fft.ifft2(np.sum(1j * K_mega * np.fft.fft2(v), axis=0)).real
+
 # x, y, X, Y, P, vx, vy = stokes_flow()
 
 # fig, ax = plt.subplots(ncols=2)
