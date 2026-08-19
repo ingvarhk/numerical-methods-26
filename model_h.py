@@ -16,17 +16,24 @@ X, Y = np.meshgrid(x, y)
 R = np.sqrt((X - c.x0)**2 + (Y - c.y0)**2)
 phi = (R < c.R0)*1.5-1 
 
+# phi = (R < c.R0) * 1.0
+# phi[phi > 0.5] = np.sqrt(c.b / c.a)
+# phi[phi < 0.5] = -np.sqrt(c.b / c.a)
+
 # Simulation
-T, PHI, MEAN_PHI = cahn_hilliard(phi, 200, 200, stokes_flow)
+vel = stokes_flow(phi)
+T, PHI, MEAN_PHI = cahn_hilliard(phi, 200, 200, lambda _: vel)
+
+print(PHI.shape)
 
 # Animation
 fig, ax = plt.subplots(figsize=(10, 7))
 anim = get_animation(T, PHI, fig, ax)
 
 # Plot hastighed
-vx, _ = stokes_flow(phi)
+vx, _ = vel
 ax2 = add_secondary_axis(ax)
 ax2.plot(x, vx[0], "--", color="red", lw=2)
 
-#plt.show()
-anim.save("animation.gif", writer="pillow", fps=20)
+plt.show()
+#anim.save("animation_test.gif", writer="pillow", fps=20)
