@@ -36,12 +36,13 @@ def cahn_hilliard(phi0, t_max, samples, velocity=zero_velocity, print_progress=T
 
     for i in range(1, iterations):
         t = i * c.dt
-        first_velocity_term = np.fft.fft2(np.sum(velocity(phi) * np.fft.ifft2(1j * K_mega * phi_tilde), axis=0))
-        second_velocity_term = np.fft.fft2(phi*np.fft.ifft2(np.sum(1j*K_mega*np.fft.fft2(velocity(phi)), axis=0)))
+        # first_velocity_term = np.fft.fft2(np.sum(velocity(phi) * np.fft.ifft2(1j * K_mega * phi_tilde), axis=0))
+        # second_velocity_term = np.fft.fft2(phi*np.fft.ifft2(np.sum(1j*K_mega*np.fft.fft2(velocity(phi)), axis=0)))
+        velocity_term = np.sum(1j * K_mega*np.fft.fft2(velocity(phi) * phi), axis=0)
 
         # Entire potential explicit
         non_linear_term = np.fft.fft2(-c.a*phi**3 + c.b*phi)
-        phi_tilde = (phi_tilde + c.lambd*k_squared*c.dt * non_linear_term - (first_velocity_term + second_velocity_term)* c.dt) / (1 + c.lambd*c.dt*k_squared*(k_squared*c.kappa))
+        phi_tilde = (phi_tilde + c.lambd*k_squared*c.dt * non_linear_term - velocity_term* c.dt) / (1 + c.lambd*c.dt*k_squared*(k_squared*c.kappa))
 
         phi = np.fft.ifft2(phi_tilde).real
 
