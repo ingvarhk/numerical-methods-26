@@ -11,14 +11,21 @@ import constants as c
 
 # Vælg startbetingelser
 IC = InitialConditions()
-IC.add_pyrenoid(IC.phi_equilibrium * 1.5)
+IC.add_pyrenoid(IC.phi_equilibrium * 1.2)
+IC.add_stardust()
 
 # Definer velocity-function
 velocity_function = stokes_flow
 vel = velocity_function(IC.phi)
 
+def late_stokes_flow(t, phi):
+    if t < 1000:
+        return zero_velocity(phi)
+    else:
+        return 8 * vel
+
 # Kør simulation
-T, PHI, MEAN_PHI = cahn_hilliard(IC.phi, 500, 200, lambda _: vel)
+T, PHI, MEAN_PHI = cahn_hilliard(IC.phi, 2000, 200, late_stokes_flow)
 
 # Massebevarelse?
 plt.figure()

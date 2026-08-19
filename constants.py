@@ -9,11 +9,11 @@ R0 = 7.2 # Initial pyrenoid radius (1.0μm)
 
 # Pyrenoid center
 # l / 2 (2.9μm)
-x0 = lx / 2
+x0 = lx / 2 + 0.3
 y0 = ly / 2
 
 # TIME
-dt = 5*10e-3 # < 0.16 = 4*(kappa)/(lambda*b^2)
+dt = 10e-3 # < 0.16 = 4*(kappa)/(lambda*b^2)
 
 # NAVIER STOKES
 eta = 40 # Shear viscosity (0.0002 Pa*min)
