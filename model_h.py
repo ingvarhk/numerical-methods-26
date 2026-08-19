@@ -22,10 +22,10 @@ phi[phi < 0.5] = -np.sqrt(c.b/c.a)
 velocity_function = constant_velocity
 
 # Simulation
-T, PHI, MEAN_PHI = cahn_hilliard(phi, 200, 200, velocity_function)
+vel = stokes_flow(phi)
+T, PHI, MEAN_PHI = cahn_hilliard(phi, 200, 200, lambda _: vel)
 
-plt.plot(T, MEAN_PHI, ".")
-plt.show()
+print(PHI.shape)
 
 # Animation
 fig, ax = plt.subplots(figsize=(10, 7))
