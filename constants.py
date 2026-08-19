@@ -1,6 +1,6 @@
 # SPATIAL DIMENSIONS
 dy = dx = 0.5 # Spatial discretization step (0.07μm)
-l = 40 # Domain size (5.7μm)
+l = 80 # Domain size (5.7μm)
 
 lx = l
 ly = l
@@ -9,7 +9,7 @@ R0 = 7.2 # Initial pyrenoid radius (1.0μm)
 
 # Pyrenoid center
 # l / 2 (2.9μm)
-x0 = lx / 2 + 0.3
+x0 = lx / 2
 y0 = ly / 2
 
 # TIME
@@ -30,6 +30,8 @@ kappa = 1 # Interfacial width coefficient (0.02 μm^2)
 
 a = 60.0 # No equivalent in paper
 b = 2.1 # Suspected chi
+
+b_p = 8.3
 
 # REACTIONS
 sharpness_b = 200

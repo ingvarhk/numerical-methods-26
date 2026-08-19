@@ -57,7 +57,7 @@ class CahnHilliardSolver:
         
         # Entire potential explicit
         if reaction_direction == 1: non_linear_term = np.fft.fft2(c.a*phi**3 - c.b*phi)
-        else: non_linear_term = np.fft.fft2(8.3*phi) # Define this later...
+        else: non_linear_term = np.fft.fft2(c.b_p*phi)
 
         reaction_flux = np.fft.fft2(reaction_direction*self.reaction_flux())
         phi_tilde = (phi_tilde - c.lambd*self.k_squared*c.dt * non_linear_term - velocity_term*c.dt + reaction_flux*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))

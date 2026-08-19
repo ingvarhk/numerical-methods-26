@@ -7,6 +7,8 @@ from velocity_fields import stokes_flow, constant_velocity, zero_velocity, diver
 from ui import get_animation, add_secondary_axis, rebin_velocity_field
 from initial_conditions import InitialConditions
 
+import matplotlib.animation as anim
+
 import constants as c
 
 # Vælg startbetingelser
@@ -21,28 +23,51 @@ velocity_function = stokes_flow
 vel = velocity_function(IC_U.phi + IC_P.phi)
 
 def late_stokes_flow(t, phi):
-    if t < 5:
+    if t < 1000:
         return zero_velocity(phi)
     else:
         return vel
 
 # Kør simulation
-chs = CahnHilliardSolver(IC_U.phi, IC_P.phi, 100, 200, late_stokes_flow)
+chs = CahnHilliardSolver(IC_U.phi, IC_P.phi, 2000, 200, late_stokes_flow)
 T, PHI_U, PHI_P, MEAN_PHI_U, MEAN_PHI_P = chs.run_simulation()
 
 # Massebevarelse?
-#plt.figure()
-#plt.plot(T, MEAN_PHI, "o", label=r"Gennemsnit af $\phi$ over tid")
-#plt.legend()
+plt.figure()
+plt.plot(T, MEAN_PHI_U, "o", label=r"$\phi_U$")
+plt.plot(T, MEAN_PHI_P, "o", label=r"$\phi_P$")
+plt.plot(T, MEAN_PHI_U + MEAN_PHI_P, "o", label=r"$\phi_U + \phi_P$")
+plt.legend()
 
 # Lav animation
 fig, ax = plt.subplots(ncols=2, figsize=(10, 7))
-anim1 = get_animation(T, PHI_U, fig, ax[0])
-anim2 = get_animation(T, PHI_P, fig, ax[1])
 
-# Tegn hastighedsfelt ved start
+update_U = get_animation(T, PHI_U, fig, ax[0])
+update_P = get_animation(T, PHI_P, fig, ax[1])
+
+# Draw velocity field
 for axis in ax:
-    axis.quiver(*rebin_velocity_field(IC_U.X, IC_U.Y, *vel), scale=np.max(vel), scale_units="xy")
+    axis.quiver(
+        *rebin_velocity_field(IC_U.X, IC_U.Y, *vel),
+        scale=np.max(vel),
+        scale_units="xy"
+    )
+
+def update(frame):
+    return update_U(frame), update_P(frame)
+
+combined_anim = anim.FuncAnimation(
+    fig,
+    update,
+    frames=len(T),
+    interval=5,
+    blit=False
+)
 
 plt.show()
-#anim.save("animation.gif", writer="pillow", fps=20)
+
+combined_anim.save(
+    "please_virk.gif",
+    writer="pillow",
+    fps=20
+)

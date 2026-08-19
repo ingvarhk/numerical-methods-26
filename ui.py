@@ -18,7 +18,8 @@ def get_animation(t, phi, fig, ax):
 
         return im
 
-    return anim.FuncAnimation(fig, update, frames=len(phi), interval=5)
+    # return anim.FuncAnimation(fig, update, frames=len(phi), interval=5)
+    return update
 
 # Tilføjer en venstre akse
 def add_secondary_axis(ax):
