@@ -13,11 +13,11 @@ import constants as c
 IC = InitialConditions()
 IC.add_pyrenoid()
 
-# Definer velocity function
+# Definer velocity-function
 velocity_function = stokes_flow
 vel = velocity_function(IC.phi)
 
-# Divergens-test
+# Divergenstest
 plt.imshow(divergence(vel), origin="lower")
 plt.colorbar()
 plt.show()
