@@ -17,25 +17,21 @@ IC.add_pyrenoid()
 velocity_function = stokes_flow
 vel = velocity_function(IC.phi)
 
-# Divergenstest
-plt.imshow(divergence(vel), origin="lower")
-plt.colorbar()
-plt.show()
-
 # Kør simulation
-T, PHI, MEAN_PHI = cahn_hilliard(IC.phi, 200, 200, lambda _: vel)
+T, PHI, MEAN_PHI = cahn_hilliard(IC.phi, 100, 200, lambda _: vel)
+
+# Massebevarelse?
+plt.figure()
+plt.plot(T, MEAN_PHI, "o", label=r"Gennemsnit af $\phi$ over tid")
+plt.legend()
 
 # Lav animation
 fig, ax = plt.subplots(figsize=(10, 7))
 anim = get_animation(T, PHI, fig, ax)
 
-# Tegn initial hastighedsfelt
+# Tegn hastighedsfelt ved start
 vx, vy = velocity_function(IC.phi)
 ax.quiver(*rebin_velocity_field(IC.X, IC.Y, vx, vy), scale=np.max(vx), scale_units="xy")
-
-# Gammelt hastighedsplot
-#ax2 = add_secondary_axis(ax)
-#ax2.plot(x, vx[0], "--", color="red", lw=2)
 
 plt.show()
 #anim.save("animation.gif", writer="pillow", fps=20)
