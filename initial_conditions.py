@@ -8,7 +8,7 @@ class InitialConditions:
         self.X, self.Y = np.meshgrid(self.x, self.y)
 
         phi_equilibrium = np.sqrt(c.b/c.a)
-        self.phi = np.zeros((len(self.x), len(self.y))) - phi_equilibrium # Stable background
+        self.phi = np.zeros(np.shape(self.X)) - phi_equilibrium # Stable background
 
     def add_random_bubbles(self):
         self.phi += np.random.random(np.shape(self.phi))*1.5-1
