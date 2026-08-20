@@ -1,5 +1,4 @@
-from matplotlib import pyplot as plt
-import matplotlib.animation as anim
+import numpy as np
 
 import constants as c
 
@@ -7,13 +6,13 @@ import constants as c
 def get_animation(t, phi, fig, ax):
 
     im = ax.imshow(phi[0], extent=[0, c.lx, 0, c.ly], origin="lower")
+    im.set_clim(vmax=np.max(phi), vmin=np.min(phi))
     fig.colorbar(im, ax=ax)
 
     ax.set(xlabel="x", ylabel="y")
 
     def update(frame):
         im.set_data(phi[frame])
-        #im.set_clim(vmax=np.max(u_of_t[frame][1]), vmin=np.min(u_of_t[frame][1]))
         ax.set_title(f"t = {t[frame]:.1f}")
 
         return im

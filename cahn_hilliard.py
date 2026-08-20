@@ -60,13 +60,17 @@ class CahnHilliardSolver:
         else: non_linear_term = np.fft.fft2(c.b_p*phi)
 
         reaction_flux = np.fft.fft2(reaction_direction*self.reaction_flux())
-        phi_tilde = (phi_tilde - c.lambd*self.k_squared*c.dt * non_linear_term - velocity_term*c.dt + reaction_flux*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
+
+        if reaction_direction == 1: laplace_term = c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa)
+        else: laplace_term = c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa)
+
+        phi_tilde = (phi_tilde - c.lambd*self.k_squared*c.dt * non_linear_term - velocity_term*c.dt + reaction_flux*c.dt) / (1 + laplace_term)
 
         phi = np.fft.ifft2(phi_tilde).real
 
         return phi, phi_tilde
     
-    # Update function
+    """ # Update function
     def flory_huggins_step(self):
         
         # Entire potential explicit
@@ -79,24 +83,29 @@ class CahnHilliardSolver:
 
         velocity_term_u = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_u) * self.phi_u), axis=0)
         velocity_term_p = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_p) * self.phi_p), axis=0)
-        self.phi_u_tilde = (self.phi_u_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_u - velocity_term_u*c.dt + reaction_flux_u*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
-        self.phi_p_tilde = self.phi_p_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_p - velocity_term_p*c.dt + reaction_flux_p*c.dt
+
+        flux_term_u = c.lambd*np.sum(1j*self.K_mega*np.fft.fft2(self.phi_u*np.fft.ifft2(1j*self.K_mega*np.fft.fft2(np.log(self.phi_u/phi_s)+c.chi*(phi_s-self.phi_u))-c.kappa*(-1)*self.k_squared*self.phi_u_tilde)), axis=0)
+        flux_term_p = c.lambd*np.sum(1j*self.K_mega*np.fft.fft2(self.phi_p*np.fft.ifft2(1j*self.K_mega*np.fft.fft2(np.log(self.phi_p/phi_s)))), axis=0)
+
+        #self.phi_u_tilde = (self.phi_u_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_u - velocity_term_u*c.dt + reaction_flux_u*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
+        #self.phi_p_tilde = self.phi_p_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_p - velocity_term_p*c.dt + reaction_flux_p*c.dt
+        self.phi_u_tilde = self.phi_u_tilde + flux_term_u*c.dt - velocity_term_u*c.dt + reaction_flux_u*c.dt
+        self.phi_p_tilde = self.phi_p_tilde + flux_term_p*c.dt - velocity_term_p*c.dt + reaction_flux_p*c.dt
 
         self.phi_u = np.fft.ifft2(self.phi_u_tilde).real
         self.phi_p = np.fft.ifft2(self.phi_p_tilde).real
-
+ """
     # Cahn-Hilliard
     def run_simulation(self):
         for i in range(1, self.iterations):
             self.t = i * c.dt
 
-            # temp_phi_u, temp_phi_u_tilde = self.spectral_ch_step(self.phi_u, self.phi_u_tilde, 1)
-            # self.phi_p, self.phi_p_tilde = self.spectral_ch_step(self.phi_p, self.phi_p_tilde, -1)
-            # self.phi_u, self.phi_u_tilde = temp_phi_u, temp_phi_u_tilde
+            temp_phi_u, temp_phi_u_tilde = self.spectral_ch_step(self.phi_u, self.phi_u_tilde, 1)
+            self.phi_p, self.phi_p_tilde = self.spectral_ch_step(self.phi_p, self.phi_p_tilde, -1)
+            self.phi_u, self.phi_u_tilde = temp_phi_u, temp_phi_u_tilde
             
-            self.flory_huggins_step()
+            #self.flory_huggins_step()
 
-            
             if i % self.SAMPLE_INTERVAL == 0:
                 k = i // self.SAMPLE_INTERVAL
                 if k >= self.samples: break

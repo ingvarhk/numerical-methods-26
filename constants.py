@@ -5,7 +5,7 @@ l = 40 # Domain size (5.7μm)
 lx = l
 ly = l
 
-R0 = 7.2 # Initial pyrenoid radius (1.0μm)
+R0 = 5.0 # Initial pyrenoid radius (1.0μm)
 
 # Pyrenoid center
 # l / 2 (2.9μm)
