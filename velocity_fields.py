@@ -29,6 +29,12 @@ def stokes_flow(phi):
 
     return np.array([vx, vy]) # * (1 / np.sqrt(2 * np.pi * 6**2)) * np.exp(-(IC.Y - c.y0)**2 / (2 * 7**2))
 
+def vortex(phi, U0 = 1, k = 3 / c.l, nu = 1):
+    vx = U0 * np.sin(k * (IC.X - c.lx / 2)) * np.cos(k * (IC.Y - c.ly / 2))
+    vy = -U0 * np.cos(k * (IC.X - c.lx / 2)) * np.sin(k * (IC.Y - c.ly / 2))
+
+    return np.array([vx, vy])
+
 def constant_velocity(phi):
     return np.array([
         np.ones_like(phi),      # vx = 1
