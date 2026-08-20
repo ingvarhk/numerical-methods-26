@@ -9,7 +9,7 @@ class InitialConditions:
         self.shape = np.shape(self.X)
 
         self.phi_equilibrium = np.sqrt(c.b/c.a)
-        self.phi = np.zeros(self.shape) - self.phi_equilibrium # Stable background
+        self.phi = np.zeros(self.shape) # - self.phi_equilibrium # Stable background
 
     def add_random_bubbles(self):
         self.phi += np.random.random(self.shape)*1.5-1

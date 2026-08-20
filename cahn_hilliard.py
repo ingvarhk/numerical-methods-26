@@ -65,16 +65,37 @@ class CahnHilliardSolver:
         phi = np.fft.ifft2(phi_tilde).real
 
         return phi, phi_tilde
+    
+    # Update function
+    def flory_huggins_step(self):
+        
+        # Entire potential explicit
+        phi_s = 1 - self.phi_u - self.phi_p
+        non_linear_term_u = np.fft.fft2(np.log(self.phi_u / phi_s) + c.chi * (phi_s - self.phi_u))
+        non_linear_term_p = np.fft.fft2(np.log(self.phi_p / phi_s))
+
+        reaction_flux_u = np.fft.fft2(self.reaction_flux())
+        reaction_flux_p = -reaction_flux_u
+
+        velocity_term_u = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_u) * self.phi_u), axis=0)
+        velocity_term_p = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_p) * self.phi_p), axis=0)
+        self.phi_u_tilde = (self.phi_u_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_u - velocity_term_u*c.dt + reaction_flux_u*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
+        self.phi_p_tilde = self.phi_p_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_p - velocity_term_p*c.dt + reaction_flux_p*c.dt
+
+        self.phi_u = np.fft.ifft2(self.phi_u_tilde).real
+        self.phi_p = np.fft.ifft2(self.phi_p_tilde).real
 
     # Cahn-Hilliard
     def run_simulation(self):
         for i in range(1, self.iterations):
             self.t = i * c.dt
 
-            temp_phi_u, temp_phi_u_tilde = self.spectral_ch_step(self.phi_u, self.phi_u_tilde, 1)
-            self.phi_p, self.phi_p_tilde = self.spectral_ch_step(self.phi_p, self.phi_p_tilde, -1)
+            # temp_phi_u, temp_phi_u_tilde = self.spectral_ch_step(self.phi_u, self.phi_u_tilde, 1)
+            # self.phi_p, self.phi_p_tilde = self.spectral_ch_step(self.phi_p, self.phi_p_tilde, -1)
+            # self.phi_u, self.phi_u_tilde = temp_phi_u, temp_phi_u_tilde
+            
+            self.flory_huggins_step()
 
-            self.phi_u, self.phi_u_tilde = temp_phi_u, temp_phi_u_tilde
             
             if i % self.SAMPLE_INTERVAL == 0:
                 k = i // self.SAMPLE_INTERVAL

@@ -1,6 +1,6 @@
 # SPATIAL DIMENSIONS
 dy = dx = 0.5 # Spatial discretization step (0.07μm)
-l = 80 # Domain size (5.7μm)
+l = 40 # Domain size (5.7μm)
 
 lx = l
 ly = l
