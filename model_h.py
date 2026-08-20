@@ -13,11 +13,11 @@ import constants as c
 
 # Vælg startbetingelser
 IC_U = InitialConditions()
-IC_U.phi[:] = 0.1
-IC_U.add_pyrenoid(0.8)
+IC_U.add_pyrenoid(0.5)
 
 IC_P = InitialConditions()
-IC_P.phi[:] = 0.1
+IC_P.phi[:] = 0
+
 
 print("Max:", np.max(IC_U.phi + IC_P.phi))
 
@@ -26,21 +26,21 @@ velocity_function = stokes_flow
 vel = velocity_function(IC_U.phi + IC_P.phi)
 
 def late_stokes_flow(t, phi):
-    if t < 1000:
+    if t < 10:
         return zero_velocity(phi)
     else:
         return vel
 
 # Kør simulation
-chs = CahnHilliardSolver(IC_U.phi, IC_P.phi, 50, 200, late_stokes_flow)
+chs = CahnHilliardSolver(IC_U.phi, IC_P.phi, 100, 100, late_stokes_flow)
 T, PHI_U, PHI_P, MEAN_PHI_U, MEAN_PHI_P = chs.run_simulation()
 
 # save arrays
-np.save("sim_data/T.npy", T)
-np.save("sim_data/PHI_U.npy", PHI_U)
-np.save("sim_data/PHI_P.npy", PHI_P)
-np.save("sim_data/MEAN_PHI_U.npy", MEAN_PHI_U)
-np.save("sim_data/MEAN_PHI_P.npy", MEAN_PHI_P)
+#np.save("sim_data/T.npy", T)
+#np.save("sim_data/PHI_U.npy", PHI_U)
+#np.save("sim_data/PHI_P.npy", PHI_P)
+#np.save("sim_data/MEAN_PHI_U.npy", MEAN_PHI_U)
+#np.save("sim_data/MEAN_PHI_P.npy", MEAN_PHI_P)
 
 # Massebevarelse?
 plt.figure()
@@ -66,18 +66,7 @@ for axis in ax:
 def update(frame):
     return update_U(frame), update_P(frame)
 
-combined_anim = anim.FuncAnimation(
-    fig,
-    update,
-    frames=len(T),
-    interval=5,
-    blit=False
-)
-
+combined_anim = anim.FuncAnimation(fig,update,frames=len(T),interval=5,blit=False)
 plt.show()
 
-combined_anim.save(
-    "please_virk2.gif",
-    writer="pillow",
-    fps=20
-)
+#combined_anim.save("please_virk2.gif", writer="pillow", fps=20)
