@@ -29,7 +29,36 @@ def stokes_flow(phi):
 
     return np.array([vx, vy]) # * (1 / np.sqrt(2 * np.pi * 6**2)) * np.exp(-(IC.Y - c.y0)**2 / (2 * 7**2))
 
-def vortex(phi, U0 = 1, k = 3 / c.l, nu = 1):
+def stokes_flow_incompressible(phi):
+    Nx = len(IC.x)
+    Ny = len(IC.y)
+
+    kx = 2 * np.pi * np.fft.fftfreq(Nx, c.dx)
+    ky = 2 * np.pi * np.fft.fftfreq(Ny, c.dy)
+
+    Kx, Ky = np.meshgrid(kx, ky)
+    K_squared = Kx**2 + Ky**2
+    K_mega = np.array([Kx, Ky])
+
+    # Define forcing as a 2D vector field: shape (2, Ny, Nx)
+    #fx = (IC.X-c.x0) * c.P0 * np.exp(-(IC.X - c.x0)**2 / (2 * c.sigma**2))
+    fx = (IC.X - c.x0) * c.P0 * np.exp(-(IC.X - c.x0)**2 / (2 * c.sigma**2))
+    fy = np.zeros_like(fx)
+    
+    f = np.array([fx, fy])
+    f_tilde = np.fft.fft2(f)
+
+    #v_tilde = (f_tilde - 1j*K_mega*(np.sum(K_mega*f_tilde, axis=0)))/(c.epsilon + c.eta*K_squared)
+
+    K_squared_safe = K_squared.copy()
+    K_squared_safe[0, 0] = 1.0  # Avoid zero-division in projection calculation
+
+    # Brinkman velocity solver incorporating epsilon
+    v_tilde = (f_tilde - K_mega*np.sum(K_mega*f_tilde, axis=0) / K_squared_safe) / (c.epsilon + c.eta * K_squared)
+
+    return np.fft.ifft2(v_tilde).real
+
+def vortex(phi, U0 = 1, k = 4 / c.l, nu = 1):
     vx = U0 * np.sin(k * (IC.X - c.lx / 2)) * np.cos(k * (IC.Y - c.ly / 2))
     vy = -U0 * np.cos(k * (IC.X - c.lx / 2)) * np.sin(k * (IC.Y - c.ly / 2))
 
@@ -60,7 +89,7 @@ def divergence(v):
 
 # Plot
 if __name__ == "__main__":
-    v = stokes_flow(IC.phi)
+    v = stokes_flow_incompressible(IC.phi)
 
     plt.title(r"Divergens af hastighedsfeltet, altså $\nabla\cdot v$")
     plt.imshow(divergence(v), extent=[0, c.lx, 0, c.ly])

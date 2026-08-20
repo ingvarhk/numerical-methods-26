@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cahn_hilliard import CahnHilliardSolver
-from velocity_fields import stokes_flow, constant_velocity, zero_velocity, divergence
+from velocity_fields import stokes_flow, stokes_flow_incompressible, constant_velocity, zero_velocity, divergence, vortex
 
 from ui import get_animation, add_secondary_axis, rebin_velocity_field
 from initial_conditions import InitialConditions
@@ -22,17 +22,17 @@ IC_P.phi[:] = 0
 print("Max:", np.max(IC_U.phi + IC_P.phi))
 
 # Definer velocity-function
-velocity_function = stokes_flow
+velocity_function = stokes_flow_incompressible
 vel = velocity_function(IC_U.phi + IC_P.phi)
 
-def late_stokes_flow(t, phi):
-    if t < 10:
+def late_flow(t, phi):
+    if t < 25:
         return zero_velocity(phi)
     else:
-        return vel
+        return 0.5*vel
 
 # Kør simulation
-chs = CahnHilliardSolver(IC_U.phi, IC_P.phi, 100, 100, late_stokes_flow)
+chs = CahnHilliardSolver(IC_U.phi, IC_P.phi, 100, 100, late_flow)
 T, PHI_U, PHI_P, MEAN_PHI_U, MEAN_PHI_P = chs.run_simulation()
 
 # save arrays
@@ -53,7 +53,7 @@ plt.legend()
 fig, ax = plt.subplots(ncols=2, figsize=(10, 7))
 
 update_U = get_animation(T, PHI_U, fig, ax[0])
-update_P = get_animation(T, PHI_P, fig, ax[1])
+update_P = get_animation(T, PHI_P+PHI_U, fig, ax[1])
 
 # Draw velocity field
 for axis in ax:
@@ -66,7 +66,11 @@ for axis in ax:
 def update(frame):
     return update_U(frame), update_P(frame)
 
-combined_anim = anim.FuncAnimation(fig,update,frames=len(T),interval=5,blit=False)
+combined_anim = anim.FuncAnimation(fig, update, frames=len(T), interval=5, blit=False)
+
+#ax2 = add_secondary_axis(ax[0])
+#ax2.plot(IC_P.x, vel[0][0], color="red")
+
 plt.show()
 
 #combined_anim.save("please_virk2.gif", writer="pillow", fps=20)

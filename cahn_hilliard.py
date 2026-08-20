@@ -41,6 +41,7 @@ class CahnHilliardSolver:
         self.T[0] = self.t
         self.PHI_U[0] = self.phi_u
         self.PHI_P[0] = self.phi_p
+        
         self.MEAN_PHI_U[0] = np.mean(self.phi_u)
         self.MEAN_PHI_P[0] = np.mean(self.phi_p)
 
@@ -51,61 +52,23 @@ class CahnHilliardSolver:
         sigma = 1 - 1/(1+np.exp(-c.sharpness_b*(self.phi_u-c.phi_c)))
         return -sigma*c.k_p*self.phi_u + (1-sigma)*c.k_u*self.phi_p
 
-    # Update function
-    def spectral_ch_step(self, phi, phi_tilde, reaction_direction):
-        velocity_term = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, phi) * phi), axis=0)
-        
-        # Entire potential explicit
-        if reaction_direction == 1: non_linear_term = np.fft.fft2(c.a*phi**3 - c.b*phi)
-        else: non_linear_term = np.fft.fft2(c.b_p*phi)
-
-        reaction_flux = np.fft.fft2(reaction_direction*self.reaction_flux())
-
-        if reaction_direction == 1: laplace_term = c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa)
-        else: laplace_term = c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa)
-
-        phi_tilde = (phi_tilde - c.lambd*self.k_squared*c.dt * non_linear_term - velocity_term*c.dt + reaction_flux*c.dt) / (1 + laplace_term)
-
-        phi = np.fft.ifft2(phi_tilde).real
-
-        return phi, phi_tilde
-    
-    """ # Update function
-    def flory_huggins_step(self):
-        
-        # Entire potential explicit
-        phi_s = 1 - self.phi_u - self.phi_p
-        non_linear_term_u = np.fft.fft2(np.log(self.phi_u / phi_s) + c.chi * (phi_s - self.phi_u))
-        non_linear_term_p = np.fft.fft2(np.log(self.phi_p / phi_s))
-
-        reaction_flux_u = np.fft.fft2(self.reaction_flux())
-        reaction_flux_p = -reaction_flux_u
-
-        velocity_term_u = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_u) * self.phi_u), axis=0)
-        velocity_term_p = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_p) * self.phi_p), axis=0)
-
-        flux_term_u = c.lambd*np.sum(1j*self.K_mega*np.fft.fft2(self.phi_u*np.fft.ifft2(1j*self.K_mega*np.fft.fft2(np.log(self.phi_u/phi_s)+c.chi*(phi_s-self.phi_u))-c.kappa*(-1)*self.k_squared*self.phi_u_tilde)), axis=0)
-        flux_term_p = c.lambd*np.sum(1j*self.K_mega*np.fft.fft2(self.phi_p*np.fft.ifft2(1j*self.K_mega*np.fft.fft2(np.log(self.phi_p/phi_s)))), axis=0)
-
-        #self.phi_u_tilde = (self.phi_u_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_u - velocity_term_u*c.dt + reaction_flux_u*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
-        #self.phi_p_tilde = self.phi_p_tilde - c.lambd*self.k_squared * c.dt * non_linear_term_p - velocity_term_p*c.dt + reaction_flux_p*c.dt
-        self.phi_u_tilde = self.phi_u_tilde + flux_term_u*c.dt - velocity_term_u*c.dt + reaction_flux_u*c.dt
-        self.phi_p_tilde = self.phi_p_tilde + flux_term_p*c.dt - velocity_term_p*c.dt + reaction_flux_p*c.dt
-
-        self.phi_u = np.fft.ifft2(self.phi_u_tilde).real
-        self.phi_p = np.fft.ifft2(self.phi_p_tilde).real
- """
     # Cahn-Hilliard
     def run_simulation(self):
         for i in range(1, self.iterations):
             self.t = i * c.dt
 
-            temp_phi_u, temp_phi_u_tilde = self.spectral_ch_step(self.phi_u, self.phi_u_tilde, 1)
-            self.phi_p, self.phi_p_tilde = self.spectral_ch_step(self.phi_p, self.phi_p_tilde, -1)
-            self.phi_u, self.phi_u_tilde = temp_phi_u, temp_phi_u_tilde
-            
-            #self.flory_huggins_step()
+            velocity_term_u = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_u) * self.phi_u), axis=0)
+            velocity_term_p = np.sum(1j * self.K_mega*np.fft.fft2(self.velocity(self.t, self.phi_p) * self.phi_p), axis=0)
 
+            reaction_flux_u = np.fft.fft2(self.reaction_flux())
+            reaction_flux_p = -reaction_flux_u
+
+            self.phi_u_tilde = (self.phi_u_tilde - c.lambd*self.k_squared*c.dt * np.fft.fft2(c.a*self.phi_u**3 - c.b*self.phi_u) - velocity_term_u*c.dt + reaction_flux_u*c.dt) / (1 + c.lambd*c.dt*self.k_squared*(self.k_squared*c.kappa))
+            self.phi_p_tilde = (self.phi_p_tilde - c.lambd*c.B*self.k_squared*self.phi_u_tilde*c.dt - velocity_term_p*c.dt + reaction_flux_p*c.dt) / (1 + c.lambd*c.dt*c.A*self.k_squared)
+
+            self.phi_u = np.fft.ifft2(self.phi_u_tilde).real
+            self.phi_p = np.fft.ifft2(self.phi_p_tilde).real
+            
             if i % self.SAMPLE_INTERVAL == 0:
                 k = i // self.SAMPLE_INTERVAL
                 if k >= self.samples: break
@@ -126,10 +89,6 @@ class CahnHilliardSolver:
         return self.T, self.PHI_U, self.PHI_P, self.MEAN_PHI_U, self.MEAN_PHI_P
 
 
-    def central_drop(X, Y, r):
-        R = np.sqrt((X - np.mean(X))**2 + (Y - np.mean(Y))**2) # Distance from center
-        return np.array(R < r, dtype=np.float64) # Mask
-
 if __name__ == "__main__":
     from ui import get_animation
 
@@ -142,12 +101,10 @@ if __name__ == "__main__":
     X, Y = np.meshgrid(x, y)
     R = np.sqrt((X - c.x0)**2 + (Y - c.x0)**2)
 
-    # Equilibrium phase value
-    #phi_eq = np.sqrt(b / a)
-
     phi = np.random.random((Ny, Nx))*1.5-1
 
-    T, PHI, MEAN_PHI = cahn_hilliard(phi, 80, 100)
+    chs = CahnHilliardSolver(phi, 80, 100)
+    T, PHI, MEAN_PHI = chs.run_simulation()
 
     fig, ax = plt.subplots(figsize=(10, 7))
     ani = get_animation(T, PHI, fig, ax)

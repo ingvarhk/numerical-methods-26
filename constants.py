@@ -26,12 +26,15 @@ sigma = 1.2 # Pressure standard deviation (5*10−5 Pa)
 # CAHN-HILLIARD
 lambd = 1 # Mobility coefficient (0.2 μm^2 min−1)
 chi = 5 # Flory-Huggins interaction parameter (5)
-kappa = 1 # Interfacial width coefficient (0.02 μm^2)
+kappa = 1 # Interfacial width coefficient (0.02 μm^2) # 6-10
 
-a = 60.0 # No equivalent in paper
-b = 2.1 # Suspected chi
+# U potential
+a = 5.3 # No equivalent in paper
+b = 1 # 1-2
 
-b_p = 8.3
+# P potential
+A = 8.3
+B = 2.25
 
 # REACTIONS
 sharpness_b = 200
