@@ -1,0 +1,1 @@
+For at køre en fuld simulation med Cahn-Hilliard samt Navier Stokes, så kør filen `model_h.py`. Parametre til simulationen kan ændres i `constants.py`.
